@@ -17,20 +17,20 @@ class Dense():
     def __init__(self, in_features: int, out_features: int, learning_rate = 0.01, init: Intializer = Intializer.ZERO):
         self.in_features = in_features
         self.out_features = out_features
-        self.mat = None
+        mat_shape = (in_features, out_features)
+        # Default to zero initialization.
+        self.mat = np.zeros(mat_shape)
         self.lr = learning_rate
-        if init == Intializer.ZERO:
-            self.mat = np.zeros(in_features, out_features)
         if init == Intializer.RANDOM:
-            self.mat = np.random.rand(in_features, out_features)
+            self.mat = np.random.rand(*mat_shape)
         if init == Intializer.NORMAL:
-            self.mat = np.random.randn(in_features, out_features)
+            self.mat = np.random.randn(*mat_shape)
         # Bias term is always initialized to 0.
         self.bias = np.zeros(out_features)
         # Layer Input. This is needed to compute gradient
         self.input_x = None
     
-    def forward(self, X: np.array) -> np.array:
+    def forward(self, X: np.ndarray) -> np.ndarray:
         """
         Forward Pass
         Args:
@@ -44,7 +44,7 @@ class Dense():
         self.input_x = X
         return np.matmul(X, self.mat) + self.bias
 
-    def backprop(self, partial_gradient: np.array):
+    def backprop(self, partial_gradient: np.ndarray) -> np.ndarray:
         """
         Compute Gradients and update weights
         Args:
@@ -75,6 +75,3 @@ class Dense():
         # d(loss)/d(input_x) * d(input_x)/d(w_prev). So we need to d(loss)/d(input_x).
         # The output shape here would be (batch, in_features)
         return np.matmul(partial_gradient, self.mat.T)
-        
-
-        

@@ -3,13 +3,14 @@ from typing import List
 from dense_layer import Dense, Intializer
 from losses import Losses, BinaryCrossEntropy, MeanSquareError
 from activations import Activations, Sigmoid
+from dataset import MNISTDataset
 
 import sklearn
 import sklearn.datasets
 
 class MLP():
     def __init__(self, input_features: int, hidden_layers: List[int], 
-                 output_features:int, activation: Activations, 
+                 output_features:int, activations: List[Activations], 
                  loss: Losses,
                  learning_rate: float = 0.01):
         self.input_features = input_features
@@ -20,8 +21,9 @@ class MLP():
         self.loss = BinaryCrossEntropy()
         if loss == Losses.MEAN_SQUARE_ERROR:
             self.loss = MeanSquareError()
-        for layer in hidden_layers + [output_features]:
+        for i, layer in enumerate(hidden_layers + [output_features]):
             self.dense_layers.append(Dense(current_input_features, layer, learning_rate, Intializer.NORMAL))
+            activation = activations[i]
             if activation != Activations.SIGMOID:
                 raise ValueError("Only Sigmoid activation is supported.")
             self.activations.append(Sigmoid())
@@ -45,19 +47,9 @@ class MLP():
                 gradient = self.activations[i].backprop(gradient)
                 gradient = self.dense_layers[i].backprop(gradient)
 
-def load_data():
-    N = 200
-    gq = sklearn.datasets.make_gaussian_quantiles(mean=None, cov=0.7,
-                                                  n_samples=N, n_features=2,
-                                                  n_classes=2, shuffle=True,
-                                                  random_state=None)
-    return gq
-
 if __name__ == "__main__":
-    print("Main")
-    X, Y = load_data()
-    mlp = MLP(input_features=2, hidden_layers=[10], 
-              output_features=1, activation=Activations.SIGMOID, 
-              loss=Losses.BINARY_CROSS_ENTROPY, learning_rate=0.1)
-    # train model on sample dataset
-    mlp.fit(X, np.expand_dims(Y,axis=1), iters=5000)
+    train_X, train_Y = MNISTDataset(n_classes=2).load_data()
+    mlp = MLP(input_features=train_X.shape[1], hidden_layers=[128, 128], 
+              output_features=train_Y.shape[1], activations=[Activations.SIGMOID, Activations.SIGMOID, Activations.SIGMOID],
+              loss=Losses.BINARY_CROSS_ENTROPY, learning_rate=0.01)
+    mlp.fit(train_X[:1000], train_Y[:1000], iters=10001)

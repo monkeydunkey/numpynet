@@ -13,4 +13,3 @@ class Sigmoid():
         # Derivative of sigmoid = sigmoid(x)*(1-sigmoid(x))
         # Performing element wise multiplication with sigmoid's derivative
         return partial_gradient * (self.result * (1-self.result))
-    
